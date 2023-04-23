@@ -14,8 +14,7 @@ class _MyLoginState extends State<MyLogin> {
     return Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-            image: AssetImage('lib/assets/images/LoginAuthentication.png'),
-            fit: BoxFit.cover),
+            image: AssetImage('lib/assets/images/logo.png'), fit: BoxFit.cover),
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,

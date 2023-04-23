@@ -1,175 +1,233 @@
+import 'package:ServiceProviderApp/Login_Screen/login.dart';
+import 'package:ServiceProviderApp/drawer_screens/drawer_screen.dart';
+import 'package:ServiceProviderApp/screens/onboarding_page.dart';
+import 'package:ServiceProviderApp/screens/splash_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../drawer_screens/drawer_screen.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 
-class SignUpForm extends StatefulWidget {
-  const SignUpForm({Key? key}) : super(key: key);
+import '../socket/postapisignup.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 
+class RegistrationFormScreen extends StatefulWidget {
   @override
-  State<SignUpForm> createState() => _SignUpFormState();
+  _RegistrationFormScreenState createState() => _RegistrationFormScreenState();
 }
 
-class _SignUpFormState extends State<SignUpForm> {
+class _RegistrationFormScreenState extends State<RegistrationFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _auth = FirebaseAuth.instance;
+  final _googleSignIn = GoogleSignIn();
+  String _firstName = '';
+  String _lastName = '';
+  String _phoneNo = '';
+  String _email = '';
+  String _password = '';
 
-  late String _firstName;
-  late String _lastName;
-  late DateTime? _dob;
-  late String _email;
-  late String _password;
+  Future<void> _signInWithGoogle() async {
+    try {
+      // Trigger the Google sign-in flow.
+      final googleUser = await _googleSignIn.signIn();
 
-  late TextEditingController _dobController = TextEditingController();
-  late TextEditingController _passwordController = TextEditingController();
+      // Obtain the auth details from the Google sign-in.
+      final googleAuth = await googleUser!.authentication;
 
-  late bool _obscureText = true;
+      // Create a new credential from the Google auth token.
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
 
-  @override
-  void dispose() {
-    _dobController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+      // Sign in with the credential.
+      await _auth.signInWithCredential(credential);
+
+      // Navigate to next screen or show success message
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Onboarding_page()),
+      );
+    } catch (e) {
+      // Handle any errors here.
+      print(e.toString());
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      await createUser(_firstName, _lastName, _phoneNo, _email, _password);
+      // Navigate to next screen or show success message
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => Onboarding_page()),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color.fromARGB(255, 0, 0, 0),
       appBar: AppBar(
-        title: Text('Sign Up'),
-        centerTitle: true,
+        backgroundColor: Colors.black,
+        elevation: 1,
       ),
-      body: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'First Name'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter your first name';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => _firstName = value!,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Last Name'),
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter your last name';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => _lastName = value!,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: _dobController,
-                  decoration: InputDecoration(labelText: 'Date of Birth'),
-                  readOnly: true,
-                  onTap: () async {
-                    final selectedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(1900),
-                      lastDate: DateTime.now(),
-                    );
-                    if (selectedDate != null) {
-                      setState(() {
-                        _dob = selectedDate;
-                        _dobController.text =
-                            "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
-                      });
-                    }
-                  },
-                  validator: (value) {
-                    if (_dob == null) {
-                      return 'Please select a valid date of birth';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter a valid email address';
-                    }
-                    if (!value.contains('@') || !value.contains('.')) {
-                      return 'Please enter a valid email address';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => _email = value!,
-                ),
-                SizedBox(height: 10),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    suffixIcon: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _obscureText = !_obscureText;
-                        });
-                      },
-                      child: Icon(_obscureText
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined),
-                    ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(40.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('lib/assets/images/logo.png'),
+                    fit: BoxFit.scaleDown,
                   ),
-                  obscureText: _obscureText,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password should be at least 6 characters long';
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => _password = value!,
                 ),
-                SizedBox(height: 10),
-                TextFormField(
-                  decoration: InputDecoration(labelText: 'Confirm Password'),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match!';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      // Save the data to a database or send it to a server here
-                      print('First Name: $_firstName');
-                      print('Last Name: $_lastName');
-                      print('Date of Birth: $_dob');
-                      print('Email: $_email');
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DrawerScreen(),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text('Submit'),
-                )
-              ],
+              ),
             ),
           ),
-        ),
+          Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'First Name',
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your first name';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _firstName = value!,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Last Name',
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your last name';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _lastName = value!,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Phone Number',
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your phone number';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _phoneNo = value!,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Email',
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your email';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _email = value!,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    style: TextStyle(
+                      color: Colors.red,
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your password';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _password = value!,
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  GestureDetector(
+                      onTap: () => Onboarding_page(),
+                      child: CircleAvatar(
+                        radius: 25,
+                        child: SignInButton(
+                          Buttons.google,
+                          onPressed: _signInWithGoogle,
+                        ),
+                      )),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  GestureDetector(
+                    onTap: () => MyLogin(),
+                    child: CircleAvatar(
+                      radius: 20,
+                      child: ElevatedButton(
+                        onPressed: _submitForm,
+                        child: Text('Submit'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

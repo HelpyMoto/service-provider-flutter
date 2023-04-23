@@ -62,7 +62,7 @@ void main() async {
         'phone': (context) => MyPhone(),
         'login': (context) => MyLogin(),
         'verify': (context) => MyVerify(),
-        'signup_form': (context) => SignUpForm(),
+        'signup_form': (context) => RegistrationFormScreen(),
         'sos_screen': (context) => SosScreen(),
         'onboarding_page': (context) => Onboarding_page(),
         'servicerequestnotification': (context) => ServiceRequestNotification(
