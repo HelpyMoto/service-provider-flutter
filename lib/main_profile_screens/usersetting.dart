@@ -20,8 +20,17 @@ class _UserSettingState extends State<UserSetting> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
-        backgroundColor: Colors.blue,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          'Settings',
+          style: TextStyle(color: Colors.black),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -38,7 +47,9 @@ class _UserSettingState extends State<UserSetting> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: SwitchListTile(
-                    title: Text('Notifications Enabled'),
+                    title: Text(
+                      'Notifications Enabled',
+                    ),
                     value: _isNotificationsEnabled,
                     onChanged: (newValue) {
                       setState(() {
@@ -63,14 +74,14 @@ class _UserSettingState extends State<UserSetting> {
                   child: ListTile(
                     title: Text('Notification Volume'),
                     subtitle: Text('${(_notificationVolume * 100).toInt()}%'),
-                    trailing: Slider(
-                      value: _notificationVolume,
-                      onChanged: (newValue) {
-                        setState(() {
-                          _notificationVolume = newValue;
-                        });
-                      },
-                    ),
+                    // trailing: Slider(
+                    //   value: _notificationVolume,
+                    //   onChanged: (newValue) {
+                    //     setState(() {
+                    //       _notificationVolume = newValue;
+                    //     });
+                    //   },
+                    // ),
                   ),
                 ),
               ),
@@ -98,7 +109,7 @@ class _UserSettingState extends State<UserSetting> {
                 ),
               ),
             ),
-            Expanded(child: Container()),
+            //Expanded(child: Container()),
           ],
         ),
       ),

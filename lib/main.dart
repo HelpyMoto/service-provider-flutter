@@ -1,5 +1,6 @@
 import 'package:ServiceProviderApp/Login_Screen/auth_screen.dart';
 import 'package:ServiceProviderApp/firebase_options.dart';
+import 'package:ServiceProviderApp/main_profile_screens/profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ServiceProviderApp/Main_Screen/sos_screen.dart';
@@ -57,10 +58,11 @@ void main() async {
           fontFamily: "font",
           useMaterial3: true,
           colorScheme: lightColorScheme),
-      initialRoute: 'auth',
+      initialRoute: 'profile_screen',
       routes: {
         '/': (context) => SplashScreen(),
         // 'display': (context) => MongoDBDisplay(),
+        'profile_screen': (context) => ProfileScreen(),
         'logo': (context) => Logo(),
         'drawer_screen': (context) => DrawerScreen(),
         'phone': (context) => MyPhone(),

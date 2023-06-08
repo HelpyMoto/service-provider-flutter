@@ -30,7 +30,6 @@ dependencies:
   firebase_core: ^2.10.0
   flutter:
     sdk: flutter
-  flutter_otp: ^0.3.2
   flutter_svg: ^2.0.1
   flutter_zoom_drawer: ^3.0.3
   google_sign_in: ^5.4.3
